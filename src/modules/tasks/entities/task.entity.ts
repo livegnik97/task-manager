@@ -20,10 +20,10 @@ export class Task {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ type: 'varchar' })
   title: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'text' })
   description?: string | null;
 
   @Column({
@@ -33,14 +33,14 @@ export class Task {
   })
   status: TaskStatus;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'text' })
   assigneeId?: string | null;
 
   @ManyToOne(() => Assignee, { nullable: true })
   @JoinColumn({ name: 'assignee_id' })
   assignee?: Assignee | null;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'timestamp' })
   dueDate?: Date | null;
 
   @CreateDateColumn({ name: 'created_at' })

@@ -10,10 +10,12 @@ import { AssigneesDataSourceModule } from '../assignees/assignee-datasource.modu
   providers: [
     {
       provide: TaskDataSourceInterface,
-      useFactory: (assigneeDs: AssigneeDataSourceInterface) =>
-        process.env.USE_DB === 'true'
+      useFactory: (assigneeDs: AssigneeDataSourceInterface) => {
+        console.log('TasksDataSourceModule', process.env.USE_DB === 'true');
+        return process.env.USE_DB === 'true'
           ? new TaskDataSource()
-          : new TaskDataSourceLocal(assigneeDs),
+          : new TaskDataSourceLocal(assigneeDs);
+      },
       inject: [AssigneeDataSourceInterface],
     },
   ],

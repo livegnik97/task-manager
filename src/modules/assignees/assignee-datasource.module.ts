@@ -7,10 +7,12 @@ import { AssigneeDataSource } from './assignee.datasource';
   providers: [
     {
       provide: AssigneeDataSourceInterface,
-      useFactory: () =>
-        process.env.USE_DB === 'true'
+      useFactory: () => {
+        console.log('AssigneesDataSourceModule', process.env.USE_DB === 'true');
+        return process.env.USE_DB === 'true'
           ? new AssigneeDataSource()
-          : new AssigneeDataSourceLocal(),
+          : new AssigneeDataSourceLocal();
+      },
     },
   ],
   exports: [AssigneeDataSourceInterface],
