@@ -1,6 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable, Inject, OnModuleInit, Optional } from '@nestjs/common';
+import { DataSource, Repository } from 'typeorm';
 import { Assignee } from './entities/assignee.entity';
 import { AssigneeModel } from './models/assignee.model';
 import { AssigneesPaginationDto } from '../../common/pagination-dtos/customs/assignees-pagination.dto';
@@ -8,12 +7,19 @@ import { PaginationModel } from '../../common/models/pagination.model';
 import { AssigneeDataSourceInterface } from './datasource/assignee-datasource.interface';
 
 @Injectable()
-export class AssigneeDataSource extends AssigneeDataSourceInterface {
+export class AssigneeDataSource extends AssigneeDataSourceInterface implements OnModuleInit {
+  private assigneeRepository!: Repository<Assignee>;
+
   constructor(
-    @InjectRepository(Assignee)
-    private readonly assigneeRepository: Repository<Assignee>,
+    @Optional() @Inject(DataSource) private readonly dataSource?: DataSource,
   ) {
     super();
+  }
+
+  onModuleInit() {
+    if (this.dataSource) {
+      this.assigneeRepository = this.dataSource.getRepository(Assignee);
+    }
   }
 
   async findAll(query: AssigneesPaginationDto): Promise<PaginationModel<AssigneeModel>> {

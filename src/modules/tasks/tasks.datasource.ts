@@ -1,22 +1,28 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable, Inject, OnModuleInit, Optional } from '@nestjs/common';
+import { DataSource, Repository } from 'typeorm';
 import { Task, TaskStatus } from './entities/task.entity';
+import { Assignee } from '../assignees/entities/assignee.entity';
 import { TaskModel } from './models/task.model';
 import { TasksPaginationDto } from '../../common/pagination-dtos/customs/tasks-pagination.dto';
 import { PaginationModel } from '../../common/models/pagination.model';
 import { TaskDataSourceInterface } from './datasource/task-datasource.interface';
-import { Assignee } from '../assignees/entities/assignee.entity';
 
 @Injectable()
-export class TaskDataSource extends TaskDataSourceInterface {
+export class TaskDataSource extends TaskDataSourceInterface implements OnModuleInit {
+  private taskRepository!: Repository<Task>;
+  private assigneeRepository!: Repository<Assignee>;
+
   constructor(
-    @InjectRepository(Task)
-    private readonly taskRepository: Repository<Task>,
-    @InjectRepository(Assignee)
-    private readonly assigneeRepository: Repository<Assignee>,
+    @Optional() @Inject(DataSource) public readonly dataSource?: DataSource,
   ) {
     super();
+  }
+
+  onModuleInit() {
+    if (this.dataSource) {
+      this.taskRepository = this.dataSource.getRepository(Task);
+      this.assigneeRepository = this.dataSource.getRepository(Assignee);
+    }
   }
 
   async findAll(query: TasksPaginationDto): Promise<PaginationModel<TaskModel>> {
@@ -63,16 +69,6 @@ export class TaskDataSource extends TaskDataSourceInterface {
     assigneeId?: string;
     dueDate?: string;
   }): Promise<TaskModel | null> {
-    // Validar que el assignee exista si se proporciona assigneeId
-    if (data.assigneeId) {
-      const assignee = await this.assigneeRepository.findOne({
-        where: { id: data.assigneeId },
-      });
-      if (!assignee) {
-        return null;
-      }
-    }
-
     const task = this.taskRepository.create({
       title: data.title,
       description: data.description,
@@ -90,16 +86,6 @@ export class TaskDataSource extends TaskDataSourceInterface {
   ): Promise<TaskModel | null> {
     const task = await this.taskRepository.findOne({ where: { id } });
     if (!task) return null;
-
-    // Validar assigneeId si se está actualizando
-    if (data.assigneeId !== undefined && data.assigneeId !== null) {
-      const assignee = await this.assigneeRepository.findOne({
-        where: { id: data.assigneeId },
-      });
-      if (!assignee) {
-        return null;
-      }
-    }
 
     if (data.title !== undefined) task.title = data.title;
     if (data.description !== undefined) task.description = data.description;

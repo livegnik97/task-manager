@@ -1,5 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { TaskDataSourceInterface } from './datasource/task-datasource.interface';
+import { AssigneeDataSourceInterface } from '../assignees/datasource/assignee-datasource.interface';
 import { TaskModel } from './models/task.model';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -14,7 +19,10 @@ const VALID_STATUSES = ['PENDING', 'IN_PROGRESS', 'DONE'];
 
 @Injectable()
 export class TasksService {
-  constructor(private readonly taskDataSource: TaskDataSourceInterface) {}
+  constructor(
+    private readonly taskDataSource: TaskDataSourceInterface,
+    private readonly assigneeDataSource: AssigneeDataSourceInterface,
+  ) {}
 
   async create(createTaskDto: CreateTaskDto): Promise<MyResponse<TaskModel>> {
     if (!createTaskDto.title || !createTaskDto.title.trim()) {
@@ -36,6 +44,20 @@ export class TasksService {
       );
     }
 
+    // Validar que el assignee exista si se proporciona assigneeId
+    if (createTaskDto.assigneeId) {
+      const assignee = await this.assigneeDataSource.findOne(
+        createTaskDto.assigneeId,
+      );
+      if (!assignee) {
+        return new ErrorResponse(
+          400,
+          CustomResponseType.invalid_field,
+          `El responsable con id ${createTaskDto.assigneeId} no existe`,
+        );
+      }
+    }
+
     const created = await this.taskDataSource.create({
       title: createTaskDto.title.trim(),
       description: createTaskDto.description,
@@ -55,9 +77,7 @@ export class TasksService {
     return new SuccessResponse(201, undefined, undefined, created);
   }
 
-  async findAll(
-    query: TasksPaginationDto,
-  ): Promise<MyResponse<PaginationModel<TaskModel>>> {
+  async findAll(query: TasksPaginationDto): Promise<MyResponse<PaginationModel<TaskModel>>> {
     if (query.page !== undefined && isNaN(Number(query.page))) {
       return new ErrorResponse(
         400,
@@ -89,10 +109,7 @@ export class TasksService {
     return new SuccessResponse(200, undefined, undefined, task);
   }
 
-  async update(
-    id: string,
-    updateTaskDto: UpdateTaskDto,
-  ): Promise<MyResponse<TaskModel>> {
+  async update(id: string, updateTaskDto: UpdateTaskDto): Promise<MyResponse<TaskModel>> {
     if (
       updateTaskDto.status !== undefined &&
       !VALID_STATUSES.includes(updateTaskDto.status)
@@ -102,6 +119,20 @@ export class TasksService {
         CustomResponseType.invalid_field,
         `Estado inválido. Valores permitidos: ${VALID_STATUSES.join(', ')}`,
       );
+    }
+
+    // Validar que el assignee exista si se proporciona assigneeId
+    if (updateTaskDto.assigneeId !== undefined && updateTaskDto.assigneeId !== null) {
+      const assignee = await this.assigneeDataSource.findOne(
+        updateTaskDto.assigneeId,
+      );
+      if (!assignee) {
+        return new ErrorResponse(
+          400,
+          CustomResponseType.invalid_field,
+          `El responsable con id ${updateTaskDto.assigneeId} no existe`,
+        );
+      }
     }
 
     const updated = await this.taskDataSource.update(id, {

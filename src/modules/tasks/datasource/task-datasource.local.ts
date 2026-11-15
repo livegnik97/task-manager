@@ -5,7 +5,6 @@ import { TaskStatus, Task } from '../entities/task.entity';
 import { TasksPaginationDto } from '../../../common/pagination-dtos/customs/tasks-pagination.dto';
 import { PaginationModel } from '../../../common/models/pagination.model';
 import { AssigneeDataSourceInterface } from '../../assignees/datasource/assignee-datasource.interface';
-import { AssigneeModel } from '../../assignees/models/assignee.model';
 
 @Injectable()
 export class TaskDataSourceLocal extends TaskDataSourceInterface {
@@ -15,26 +14,6 @@ export class TaskDataSourceLocal extends TaskDataSourceInterface {
     private readonly assigneeDataSource: AssigneeDataSourceInterface,
   ) {
     super();
-  }
-
-  private async toModel(task: Task): Promise<TaskModel> {
-    let assigneeName: string | null = null;
-    if (task.assigneeId) {
-      const assignee = await this.assigneeDataSource.findOne(task.assigneeId);
-      if (assignee) {
-        assigneeName = assignee.name;
-      }
-    }
-    return new TaskModel(
-      task.id,
-      task.title,
-      task.description,
-      task.status,
-      task.assigneeId,
-      assigneeName,
-      task.dueDate,
-      task.createdAt,
-    );
   }
 
   async findAll(query: TasksPaginationDto): Promise<PaginationModel<TaskModel>> {
@@ -52,8 +31,8 @@ export class TaskDataSourceLocal extends TaskDataSourceInterface {
     const limit = Math.min(query.limit ?? 10, 100);
     const skip = (page - 1) * limit;
     const total = items.length;
-    const pagedItems = await Promise.all(
-      items.slice(skip, skip + limit).map((t) => this.toModel(t)),
+    const pagedItems = items.slice(skip, skip + limit).map((t) =>
+      TaskModel.fromEntity(t),
     );
 
     return PaginationModel.build({
@@ -67,7 +46,7 @@ export class TaskDataSourceLocal extends TaskDataSourceInterface {
   async findOne(id: string): Promise<TaskModel | null> {
     const task = this.tasks.get(id);
     if (!task) return null;
-    return this.toModel(task);
+    return TaskModel.fromEntity(task);
   }
 
   async create(data: {
@@ -77,6 +56,7 @@ export class TaskDataSourceLocal extends TaskDataSourceInterface {
     assigneeId?: string;
     dueDate?: string;
   }): Promise<TaskModel | null> {
+    // Validar que el assignee exista si se proporciona assigneeId
     if (data.assigneeId) {
       const assignee = await this.assigneeDataSource.findOne(data.assigneeId);
       if (!assignee) {
@@ -97,7 +77,26 @@ export class TaskDataSourceLocal extends TaskDataSourceInterface {
       updatedAt: new Date(),
     };
     this.tasks.set(id, task);
-    return this.toModel(task);
+    
+    // Obtener nombre del assignee si se proporcionó
+    let assigneeName: string | null = null;
+    if (data.assigneeId) {
+      const assignee = await this.assigneeDataSource.findOne(data.assigneeId);
+      if (assignee) {
+        assigneeName = assignee.name;
+      }
+    }
+    
+    return new TaskModel(
+      task.id,
+      task.title,
+      task.description,
+      task.status,
+      task.assigneeId,
+      assigneeName,
+      task.dueDate,
+      task.createdAt,
+    );
   }
 
   async update(
@@ -107,6 +106,7 @@ export class TaskDataSourceLocal extends TaskDataSourceInterface {
     const task = this.tasks.get(id);
     if (!task) return null;
 
+    // Validar assigneeId si se está actualizando
     if (data.assigneeId !== undefined && data.assigneeId !== null) {
       const assignee = await this.assigneeDataSource.findOne(data.assigneeId);
       if (!assignee) {
@@ -123,7 +123,7 @@ export class TaskDataSourceLocal extends TaskDataSourceInterface {
     }
     task.updatedAt = new Date();
     this.tasks.set(id, task);
-    return this.toModel(task);
+    return TaskModel.fromEntity(task);
   }
 
   async remove(id: string): Promise<boolean | null> {
