@@ -9,7 +9,7 @@ API REST para gestionar tareas desarrollada como prueba técnica para posición 
 ### Requisitos
 - Node.js (v20+)
 - pnpm (recomendado) o npm
-- PostgreSQL local (puerto 5433) — solo si usas modo `USE_DB=true`
+- PostgreSQL local (puerto 5433) — **solo si usas `USE_DB=true`**
 
 ### Pasos
 
@@ -22,20 +22,35 @@ cd task-manager
 pnpm install
 
 # 3. Variables de entorno
-# Copia y ajusta el archivo .env según tu entorno:
+cp .env.example .env
+# Editar .env según tu entorno:
 #   USE_DB=false  → modo local sin base de datos (Map en memoria, ideal para pruebas)
 #   USE_DB=true   → modo PostgreSQL (requiere BD en localhost:5433)
 
-# 4. Si usas USE_DB=true, aplicar migraciones/sincronizar:
-npx prisma migrate dev  # o TypeORM synchronize (sincroniza automáticamente en dev)
+# 4. Si usas USE_DB=true, crear la base de datos y aplicar migraciones:
+#   - Crear la DB: createdb -h localhost -p 5433 -U root task_manager_db
+#   - Ejecutar migraciones: pnpm run migration:run
 
-# 5. Generar cliente (si aplica) e iniciar:
+# 5. Iniciar la aplicación
 pnpm run start:dev
+```
+
+### Iniciar con variable de entorno directa (sin editar .env)
+
+También puedes pasar la variable directamente al comando:
+
+```bash
+# Modo local (sin PostgreSQL)
+USE_DB=false pnpm run start:dev
+
+# Modo PostgreSQL
+USE_DB=true pnpm run start:dev
 ```
 
 La API quedará disponible en: `http://localhost:3000`
 
 ### Modo local sin base de datos (recomendado para pruebas)
+
 Por defecto `USE_DB=false`, así que no necesitas instalar PostgreSQL ni Docker. Las tareas y responsables se guardan en un `Map` en memoria mientras el backend se ejecuta.
 
 ---
