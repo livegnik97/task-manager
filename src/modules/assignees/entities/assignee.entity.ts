@@ -14,7 +14,7 @@ export class Assignee {
   @Column()
   name: string;
 
-  @Column({ nullable: true, unique: true })
+  @Column({ nullable: true, unique: true, type: 'varchar' })
   email?: string | null;
 
   @CreateDateColumn({ name: 'created_at' })
