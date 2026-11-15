@@ -57,5 +57,9 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   await app.listen(process.env.PORT ?? 3000);
+  const url = await app.getUrl();
+  console.log(`\n🚀 Backend Task Manager running at: ${url}`);
+  console.log(`📚 Swagger UI: ${url}/api/docs`);
+  console.log(`📄 Swagger JSON: ${url}/api/docs/json\n`);
 }
 bootstrap();
