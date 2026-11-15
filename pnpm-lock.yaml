@@ -117,6 +117,9 @@ importers:
       tsconfig-paths:
         specifier: ^4.2.0
         version: 4.2.0
+      typeorm-ts-node-commonjs:
+        specifier: ^0.3.20
+        version: 0.3.20
       typescript:
         specifier: ^5.7.3
         version: 5.9.3
@@ -3109,6 +3112,10 @@ packages:
   type-is@2.1.0:
     resolution: {integrity: sha512-faYHw0anBbc/kWF3zFTEnxSFOAGUX9GFbOBthvDdLsIlEoWOFOtS0zgCiQYwIskL9iGXZL3kAXD8OoZ4GmMATA==}
     engines: {node: '>= 18'}
+
+  typeorm-ts-node-commonjs@0.3.20:
+    resolution: {integrity: sha512-lXjve7w7OcF3s5+dHnCsrBjUTukpVeiS0bDe5KDXWcDx8TyRW0GTTg9kjWgHzFgHgBIBBu4WGXM0iuGpEgaV9g==}
+    hasBin: true
 
   typeorm@1.1.3:
     resolution: {integrity: sha512-zpBWklzlWjoPFKZ5Frf1TWT9OzXqtJaej7HvdGGvx0TQLsKgSoG2HeKVbORXZhJNWhJ8BNFK+WqsogyuMGN2dQ==}
@@ -6592,6 +6599,8 @@ snapshots:
       content-type: 2.1.0
       media-typer: 1.1.1
       mime-types: 3.0.2
+
+  typeorm-ts-node-commonjs@0.3.20: {}
 
   typeorm@1.1.3(pg@8.23.1)(ts-node@10.9.2(@types/node@22.20.5)(typescript@5.9.3)):
     dependencies:
