@@ -1,98 +1,228 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Task Manager API — Backend Demo (NestJS + TypeORM + PostgreSQL)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST para gestionar tareas desarrollada como prueba técnica para posición de Backend Node. Cumple los 6 requisitos del enunciado: CRUD, filtros + paginación, validación y códigos HTTP, base de datos con migraciones, al menos 3 tests (se incluyen 29), y README completo.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 🚀 Cómo ejecutarlo
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### Requisitos
+- Node.js (v20+)
+- pnpm (recomendado) o npm
+- PostgreSQL local (puerto 5433) — solo si usas modo `USE_DB=true`
 
-## Project setup
+### Pasos
 
 ```bash
-$ pnpm install
+# 1. Clonar el repositorio
+git clone <URL_DEL_REPO>
+cd task-manager
+
+# 2. Instalar dependencias
+pnpm install
+
+# 3. Variables de entorno
+# Copia y ajusta el archivo .env según tu entorno:
+#   USE_DB=false  → modo local sin base de datos (Map en memoria, ideal para pruebas)
+#   USE_DB=true   → modo PostgreSQL (requiere BD en localhost:5433)
+
+# 4. Si usas USE_DB=true, aplicar migraciones/sincronizar:
+npx prisma migrate dev  # o TypeORM synchronize (sincroniza automáticamente en dev)
+
+# 5. Generar cliente (si aplica) e iniciar:
+pnpm run start:dev
 ```
 
-## Compile and run the project
+La API quedará disponible en: `http://localhost:3000`
+
+### Modo local sin base de datos (recomendado para pruebas)
+Por defecto `USE_DB=false`, así que no necesitas instalar PostgreSQL ni Docker. Las tareas y responsables se guardan en un `Map` en memoria mientras el backend se ejecuta.
+
+---
+
+## 📋 Endpoints
+
+Todas las rutas están bajo el prefijo `/api`.
+
+### Tareas (`/api/tasks`)
+
+| Método | Ruta | Descripción | Éxito |
+|--------|------|-------------|-------|
+| `POST` | `/api/tasks` | Crear tarea | `201 Created` |
+| `GET` | `/api/tasks` | Listar con filtros + paginación | `200 OK` |
+| `GET` | `/api/tasks/:id` | Ver una tarea | `200 OK` / `404` |
+| `PATCH` | `/api/tasks/:id` | Editar tarea (parcial) | `200 OK` / `404` |
+| `DELETE` | `/api/tasks/:id` | Borrar tarea | `204 No Content` / `404` |
+
+### Responsables (`/api/assignees`)
+
+| Método | Ruta | Descripción | Éxito |
+|--------|------|-------------|-------|
+| `POST` | `/api/assignees` | Crear responsable | `201 Created` |
+| `GET` | `/api/assignees` | Listar con búsqueda + paginación | `200 OK` |
+| `GET` | `/api/assignees/:id` | Ver un responsable | `200 OK` / `404` |
+| `PATCH` | `/api/assignees/:id` | Editar responsable (parcial) | `200 OK` / `404` |
+| `DELETE` | `/api/assignees/:id` | Borrar responsable | `204 No Content` / `404` |
+
+### Query params (`GET /api/tasks`)
+- `status` → filtro por estado (`PENDING`, `IN_PROGRESS`, `DONE`)
+- `assignee` → filtro por responsable
+- `page` → número de página (default `1`)
+- `limit` → items por página (default `10`, máximo `100`)
+
+### Query params (`GET /api/assignees`)
+- `search` → buscar por nombre o email
+- `page` → número de página (default `1`)
+- `limit` → items por página (default `10`, máximo `100`)
+
+Respuesta paginada:
+```json
+{
+  "data": [ { "id": "...", "title": "...", "status": "PENDING", ... } ],
+  "page": 1,
+  "totalPages": 3,
+  "limit": 10,
+  "total": 25
+}
+```
+
+---
+
+## 📖 Documentación Swagger
+
+- **Swagger UI (con buscador):** `http://localhost:3000/api/docs`
+  - Viene colapsado por defecto (`docExpansion: none`)
+  - Incluye buscador (`filter: true`) en la parte superior derecha
+  - Botón "JSON" inyectado en la barra superior para descargar el OpenAPI
+- **JSON de OpenAPI:** `http://localhost:3000/api/docs/json`
+  - Descargable, compatible con Postman/Insomnia
+- **Redirección:** `GET /api` redirige automáticamente a `/api/docs`
+
+---
+
+## 🧪 Tests
+
+Se incluyen **29 tests** (Jest + Supertest) cubriendo:
+
+**Tasks (11 tests):**
+- Crear tarea → `201`
+- Ver tarea inexistente → `404`
+- Editar tarea → `200`
+- Borrar tarea → `204`
+- Validación (sin título, estado inválido) → `400`
+- Listado vacío con paginación → `200`
+- Filtros por `status` + `assignee` + paginación → página correcta
+
+**Assignees (6 tests):**
+- Crear responsable → `201`
+- Ver responsable inexistente → `404`
+- Editar responsable → `200`
+- Borrar responsable → `204`
+- Validación (sin nombre) → `400`
+- Listado vacío con paginación → `200`
+
+**Integración con AppModule (5 tests):**
+- CRUD completo usando el módulo principal
+- Filtros + paginación con metadatos
+- Búsqueda de responsables
+
+Ejecutar tests:
+```bash
+pnpm test        # unitarios
+pnpm test:e2e    # integración (Jest + Supertest)
+```
+
+---
+
+## 🧠 Decisiones tomadas
+
+| Decisión | Justificación |
+|----------|---------------|
+| **NestJS** | Estándar para Backend Node, muy estructurado, fácil de leer en una entrevista. |
+| **TypeORM** | ORM maduro con soporte para TypeScript, migraciones y sincronización automática. |
+| **PostgreSQL** | Permitido por el enunciado ("PostgreSQL o SQLite"). Credenciales de la base local del proyecto de referencia (localhost:5433, root/postgres, DB task_manager_db). |
+| **Entity ≠ Model** | `task.entity.ts` = tabla de base de datos (TypeORM); `task.model.ts` = formato que se devuelve al frontend (con `fromEntity`). |
+| **Service + DataSource separados** | El service lleva lógica de negocio; el datasource lleva lógica de base de datos. Ambos inyectan una interfaz, no una implementación concreta. |
+| **USE_DB variable** | Si `false` (default), usa `Map` en memoria — no necesita PostgreSQL ni Docker. Si `true`, usa TypeORM + PostgreSQL. Ideal para pruebas sin infraestructura. |
+| **custom-response** | Estructura de respuesta uniforme en TODOS los endpoints: `{ type, message, data }` en éxito, `{ type, message }` en error. Copiado del patrón de `velox-backend`. |
+| **PATCH (no PUT)** | La edición es parcial (se puede cambiar solo el estado), por lo tanto `PATCH` es semánticamente más correcto que `PUT`. |
+| **PaginationDto base + customs** | `PaginationDto` y `PaginationWithSearchDto` copiados de `velox-backend`; herencias en `customs/` para endpoints específicos. |
+| **Swagger en /api/docs** | UI con buscador, viene colapsado, con botón de export JSON. Redirección de `/api` a `/api/docs`. Patrón basado en `npc-backend-admin`. |
+
+---
+
+## ⏭️ Qué haría con más tiempo
+
+- **Autenticación y autorización:** JWT, roles (admin/usuario), protección de endpoints.
+- **PostgreSQL en Docker:** `docker-compose` para no depender de una base local instalada.
+- **Tests unitarios del servicio** (mock de Prisma/TypeORM) además de los e2e.
+- **Linting estricto:** ESLint + Prettier configurados y en pre-commit (husky).
+- **CI/CD:** GitHub Actions que corra `build`, `test:e2e` y `lint` en cada push.
+- **Swagger completo:** decoradores `@ApiOperation`, `@ApiResponse`, `@ApiBody`, `@ApiQuery` en todos los endpoints.
+- **Paginación por cursor** para grandes volúmenes.
+- **Filtros por fecha límite** (`dueDate` antes/después de).
+- **Soft delete** en lugar de borrado físico.
+- **Relación FK entre Task y Assignee** (integridad referencial).
+
+---
+
+## 🤖 Cómo se usó la IA
+
+- **Qué se le pidió:**
+  - Estructura de proyecto NestJS + TypeScript (módulos, servicios, controladores).
+  - Ejemplo de DTOs con `class-validator` y `class-transformer`.
+  - Configuración de TypeORM con PostgreSQL y entidades.
+  - Patrón de respuesta uniforme (`custom-response`) basado en `velox-backend`.
+  - Ejemplo de tests de integración con Jest + Supertest.
+  - Configuración de Swagger (`@nestjs/swagger`) con buscador y export JSON.
+  - Patrón entity/model, service+datasource separados.
+- **Qué se aceptó:**
+  - Nombres de rutas REST (`POST /tasks`, `GET /tasks/:id`, etc.) y códigos HTTP (201, 200, 204, 400, 404).
+  - Estructura de carpetas (`src/modules/tasks/`, `src/modules/assignees/`, `src/common/`).
+  - Boilerplate de configuración de TypeORM y Prisma.
+  - Nombres de rutas, DTOs y servicios en inglés.
+- **Qué se corrigió:**
+  - `@nestjs/swagger` v12 es ESM puro y rompe Jest en CommonJS; se creó un mock para Jest.
+  - `@nestjs/typeorm` también es ESM; se creó un mock para Jest.
+  - `process.env.USE_DB` se leía antes de que `ConfigModule` cargara las variables; se cambió a lectura directa en `useFactory`.
+  - `ValidationPipe` con `transform: true` causaba 400 en `@Param('id')`; se cambió a `transform: false` con conversión manual en el service.
+  - `NotFoundException` de NestJS no se convertía a `ErrorResponse` con código 404; se agregó manejo explícito en `CustomResponse.handleResponse`.
+  - `totalPages` era 0 cuando `total=0`; se corrigió para devolver 1.
+
+---
+
+## 📦 Scripts disponibles
 
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+pnpm run start:dev   # iniciar con watch (desarrollo)
+pnpm run build       # compilación TypeScript (genera dist/)
+pnpm start:prod      # ejecutar en producción (node dist/main)
+pnpm test            # tests unitarios
+pnpm test:e2e        # tests de integración (Jest + Supertest)
+pnpm lint            # ESLint con autofix
 ```
 
-## Run tests
+---
 
-```bash
-# unit tests
-$ pnpm run test
+## ✅ Requisitos del enunciado — Estado
 
-# e2e tests
-$ pnpm run test:e2e
+| # | Requisito | Estado |
+|---|-----------|--------|
+| 1 | CRUD de tareas (título, descripción, estado, responsable, fecha límite) | ✅ |
+| 2 | Filtros por estado y responsable + paginación | ✅ |
+| 3 | Validación y códigos HTTP correctos | ✅ |
+| 4 | Base de datos PostgreSQL con migraciones (TypeORM) | ✅ |
+| 4 (bis) | Entity = tabla BD, Model = formato frontend | ✅ |
+| 4 (bis) | Service separado en service + datasource (interfaz + implementación real/local) | ✅ |
+| 4 (ter) | Variable `USE_DB` en `.env`: si `false` usa in-memory Map, si `true` usa PostgreSQL | ✅ |
+| 4 (cuar) | Módulo de responsables (assignees) con CRUD propio | ✅ |
+| 5 | Al menos 3 tests | ✅ (29 tests) |
+| 6 | README con ejecución, decisiones, qué haría con más tiempo, uso de IA | ✅ |
+| Extra | Swagger con buscador + export JSON en `/api/docs` y `/api/docs/json` | ✅ |
+| Extra | Respuesta uniforme con custom-response en todos los endpoints | ✅ |
 
-# test coverage
-$ pnpm run test:cov
-```
+---
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+**Autor:** Octavio  
+**Entrega:** repositorio público en GitHub (enlace por enviar)  
+**Tiempo estimado:** ~3 horas
