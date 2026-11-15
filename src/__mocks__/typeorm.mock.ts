@@ -12,7 +12,7 @@ export const InjectRepository = (entity: any) => {
 
 export class Repository<T> {
   constructor(public entity: any) {}
-  async createQueryBuilder() {
+  async createQueryBuilder(): Promise<any> {
     return {
       andWhere: () => this,
       orderBy: () => this,
