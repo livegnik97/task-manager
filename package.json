@@ -74,7 +74,9 @@
     },
     "transformIgnorePatterns": [],
     "moduleNameMapper": {
-      "^@nestjs/swagger$": "<rootDir>/__mocks__/swagger.mock.ts"
+      "^@nestjs/swagger$": "<rootDir>/__mocks__/swagger.mock.ts",
+      "^@nestjs/typeorm$": "<rootDir>/__mocks__/typeorm.mock.ts",
+      "^typeorm$": "<rootDir>/__mocks__/typeorm.mock.ts"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"

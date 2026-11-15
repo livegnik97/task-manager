@@ -9,6 +9,7 @@ export const ApiExtraModels = () => (_target: any) => {};
 export const ApiOkResponse = () => (_target: any) => {};
 export const ApiBearerAuth = () => (_target: any) => {};
 export const ApiPaginatedResponse = () => (_target: any) => {};
+export const getSchemaPath = (model: any) => ({ $ref: `definitions/${model.name}` });
 
 export class DocumentBuilder {
   setTitle(title: string) { return this; }

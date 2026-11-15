@@ -43,9 +43,10 @@ export class PaginationModel<T> {
     data: T[];
   }): PaginationModel<T> {
     const limit = payload.limit > 0 ? payload.limit : 10;
+    const totalPages = payload.total > 0 ? Math.ceil(payload.total / limit) : 1;
     return new PaginationModel<T>(
       payload.page > 0 ? payload.page : 1,
-      limit > 0 ? Math.ceil(payload.total / limit) : 1,
+      totalPages,
       limit,
       payload.total,
       payload.data,
