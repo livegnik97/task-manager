@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { TaskDataSourceInterface } from './datasource/task-datasource.interface';
 import { AssigneeDataSourceInterface } from '../assignees/datasource/assignee-datasource.interface';
 import { TaskModel } from './models/task.model';
@@ -77,7 +73,9 @@ export class TasksService {
     return new SuccessResponse(201, undefined, undefined, created);
   }
 
-  async findAll(query: TasksPaginationDto): Promise<MyResponse<PaginationModel<TaskModel>>> {
+  async findAll(
+    query: TasksPaginationDto,
+  ): Promise<MyResponse<PaginationModel<TaskModel>>> {
     if (query.page !== undefined && isNaN(Number(query.page))) {
       return new ErrorResponse(
         400,
@@ -109,7 +107,10 @@ export class TasksService {
     return new SuccessResponse(200, undefined, undefined, task);
   }
 
-  async update(id: string, updateTaskDto: UpdateTaskDto): Promise<MyResponse<TaskModel>> {
+  async update(
+    id: string,
+    updateTaskDto: UpdateTaskDto,
+  ): Promise<MyResponse<TaskModel>> {
     if (
       updateTaskDto.status !== undefined &&
       !VALID_STATUSES.includes(updateTaskDto.status)
@@ -122,7 +123,10 @@ export class TasksService {
     }
 
     // Validar que el assignee exista si se proporciona assigneeId
-    if (updateTaskDto.assigneeId !== undefined && updateTaskDto.assigneeId !== null) {
+    if (
+      updateTaskDto.assigneeId !== undefined &&
+      updateTaskDto.assigneeId !== null
+    ) {
       const assignee = await this.assigneeDataSource.findOne(
         updateTaskDto.assigneeId,
       );

@@ -1,31 +1,24 @@
-import { Injectable, Inject, OnModuleInit, Optional } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Task, TaskStatus } from './entities/task.entity';
-import { Assignee } from '../assignees/entities/assignee.entity';
 import { TaskModel } from './models/task.model';
 import { TasksPaginationDto } from '../../common/pagination-dtos/customs/tasks-pagination.dto';
 import { PaginationModel } from '../../common/models/pagination.model';
 import { TaskDataSourceInterface } from './datasource/task-datasource.interface';
 
 @Injectable()
-export class TaskDataSource extends TaskDataSourceInterface implements OnModuleInit {
-  private taskRepository!: Repository<Task>;
-  private assigneeRepository!: Repository<Assignee>;
-
+export class TaskDataSource extends TaskDataSourceInterface {
   constructor(
-    @Optional() @Inject(DataSource) public readonly dataSource?: DataSource,
+    @InjectRepository(Task)
+    private readonly taskRepository: Repository<Task>,
   ) {
     super();
   }
 
-  onModuleInit() {
-    if (this.dataSource) {
-      this.taskRepository = this.dataSource.getRepository(Task);
-      this.assigneeRepository = this.dataSource.getRepository(Assignee);
-    }
-  }
-
-  async findAll(query: TasksPaginationDto): Promise<PaginationModel<TaskModel>> {
+  async findAll(
+    query: TasksPaginationDto,
+  ): Promise<PaginationModel<TaskModel>> {
     const qb = this.taskRepository.createQueryBuilder('task');
     qb.leftJoinAndSelect('task.assignee', 'assignee');
 
@@ -34,7 +27,9 @@ export class TaskDataSource extends TaskDataSourceInterface implements OnModuleI
     }
 
     if (query.assigneeId) {
-      qb.andWhere('task.assigneeId = :assigneeId', { assigneeId: query.assigneeId });
+      qb.andWhere('task.assigneeId = :assigneeId', {
+        assigneeId: query.assigneeId,
+      });
     }
 
     const page = query.page ?? 1;
@@ -89,7 +84,7 @@ export class TaskDataSource extends TaskDataSourceInterface implements OnModuleI
 
     if (data.title !== undefined) task.title = data.title;
     if (data.description !== undefined) task.description = data.description;
-    if (data.status !== undefined) task.status = data.status as TaskStatus;
+    if (data.status !== undefined) task.status = data.status;
     if (data.assigneeId !== undefined) task.assigneeId = data.assigneeId;
     if (data.dueDate !== undefined) {
       task.dueDate = data.dueDate ? new Date(data.dueDate) : null;
