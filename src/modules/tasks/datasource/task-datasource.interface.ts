@@ -3,7 +3,9 @@ import { TasksPaginationDto } from '../../../common/pagination-dtos/customs/task
 import { PaginationModel } from '../../../common/models/pagination.model';
 
 export abstract class TaskDataSourceInterface {
-  abstract findAll(query: TasksPaginationDto): Promise<PaginationModel<TaskModel>>;
+  abstract findAll(
+    query: TasksPaginationDto,
+  ): Promise<PaginationModel<TaskModel>>;
   abstract findOne(id: string): Promise<TaskModel | null>;
   abstract create(data: {
     title: string;

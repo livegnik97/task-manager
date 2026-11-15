@@ -31,6 +31,11 @@ export class UpdateTaskDto {
 
   @IsOptional()
   @IsDateString()
-  @ApiPropertyOptional({ type: String, format: 'date-time', required: false, nullable: true })
+  @ApiPropertyOptional({
+    type: String,
+    format: 'date-time',
+    required: false,
+    nullable: true,
+  })
   dueDate?: string;
 }

@@ -2,10 +2,14 @@ import { Injectable, Inject } from '@nestjs/common';
 
 export const Entity = (options?: any) => (_target: any) => {};
 export const Column = (options?: any) => (_target: any, _key: string) => {};
-export const PrimaryGeneratedColumn = (strategy?: any) => (_target: any, _key: string) => {};
-export const CreateDateColumn = (options?: any) => (_target: any, _key: string) => {};
-export const UpdateDateColumn = (options?: any) => (_target: any, _key: string) => {};
-export const ManyToOne = (target?: any, options?: any) => (_target: any, _key: string) => {};
+export const PrimaryGeneratedColumn =
+  (strategy?: any) => (_target: any, _key: string) => {};
+export const CreateDateColumn =
+  (options?: any) => (_target: any, _key: string) => {};
+export const UpdateDateColumn =
+  (options?: any) => (_target: any, _key: string) => {};
+export const ManyToOne =
+  (target?: any, options?: any) => (_target: any, _key: string) => {};
 export const JoinColumn = (options?: any) => (_target: any, _key: string) => {};
 
 class TypeOrmCoreModule {}
@@ -32,7 +36,12 @@ export class Repository<T> {
     return data;
   }
   async save(data: any) {
-    return { ...data, id: 'mock-id', createdAt: new Date(), updatedAt: new Date() };
+    return {
+      ...data,
+      id: 'mock-id',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
   }
   async delete(options: any) {
     return { affected: 1 };
@@ -47,6 +56,7 @@ export class DataSource {
 
 export const TypeOrmModule = {
   forRoot: () => ({ module: TypeOrmCoreModule }),
+  forRootAsync: () => ({ module: TypeOrmCoreModule }),
   forFeature: (entities: any[]) => ({
     module: TypeOrmCoreModule,
     providers: entities.map((e) => ({

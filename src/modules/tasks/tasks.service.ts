@@ -1,33 +1,37 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { TaskDataSourceInterface } from './datasource/task-datasource.interface';
 import { TaskModel } from './models/task.model';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { TasksPaginationDto } from '../../common/pagination-dtos/customs/tasks-pagination.dto';
 import { PaginationModel } from '../../common/models/pagination.model';
+import { MyResponse } from '../../common/custom-response/entities/my-response';
+import { SuccessResponse } from '../../common/custom-response/entities/success-response';
+import { ErrorResponse } from '../../common/custom-response/entities/error-response';
+import { CustomResponseType } from '../../common/custom-response/custom-response-type';
 
 const VALID_STATUSES = ['PENDING', 'IN_PROGRESS', 'DONE'];
 
 @Injectable()
 export class TasksService {
-  constructor(
-    private readonly taskDataSource: TaskDataSourceInterface,
-  ) {}
+  constructor(private readonly taskDataSource: TaskDataSourceInterface) {}
 
-  async create(createTaskDto: CreateTaskDto): Promise<TaskModel> {
+  async create(createTaskDto: CreateTaskDto): Promise<MyResponse<TaskModel>> {
     if (!createTaskDto.title || !createTaskDto.title.trim()) {
-      throw new BadRequestException('El título es requerido');
+      return new ErrorResponse(
+        400,
+        CustomResponseType.empty_fields,
+        'El título es requerido',
+      );
     }
 
     if (
       createTaskDto.status !== undefined &&
       !VALID_STATUSES.includes(createTaskDto.status)
     ) {
-      throw new BadRequestException(
+      return new ErrorResponse(
+        400,
+        CustomResponseType.invalid_field,
         `Estado inválido. Valores permitidos: ${VALID_STATUSES.join(', ')}`,
       );
     }
@@ -41,37 +45,61 @@ export class TasksService {
     });
 
     if (!created) {
-      throw new BadRequestException('Error creando la tarea');
+      return new ErrorResponse(
+        400,
+        CustomResponseType.create_error,
+        'Error creando la tarea',
+      );
     }
 
-    return created;
+    return new SuccessResponse(201, undefined, undefined, created);
   }
 
-  async findAll(query: TasksPaginationDto): Promise<PaginationModel<TaskModel>> {
+  async findAll(
+    query: TasksPaginationDto,
+  ): Promise<MyResponse<PaginationModel<TaskModel>>> {
     if (query.page !== undefined && isNaN(Number(query.page))) {
-      throw new BadRequestException('El parámetro page debe ser un número');
+      return new ErrorResponse(
+        400,
+        CustomResponseType.invalid_field,
+        'El parámetro page debe ser un número',
+      );
     }
     if (query.limit !== undefined && isNaN(Number(query.limit))) {
-      throw new BadRequestException('El parámetro limit debe ser un número');
+      return new ErrorResponse(
+        400,
+        CustomResponseType.invalid_field,
+        'El parámetro limit debe ser un número',
+      );
     }
 
-    return this.taskDataSource.findAll(query);
+    const result = await this.taskDataSource.findAll(query);
+    return new SuccessResponse(200, undefined, undefined, result);
   }
 
-  async findOne(id: string): Promise<TaskModel> {
+  async findOne(id: string): Promise<MyResponse<TaskModel>> {
     const task = await this.taskDataSource.findOne(id);
     if (!task) {
-      throw new NotFoundException(`Tarea con id ${id} no encontrada`);
+      return new ErrorResponse(
+        404,
+        CustomResponseType.not_found,
+        `Tarea con id ${id} no encontrada`,
+      );
     }
-    return task;
+    return new SuccessResponse(200, undefined, undefined, task);
   }
 
-  async update(id: string, updateTaskDto: UpdateTaskDto): Promise<TaskModel> {
+  async update(
+    id: string,
+    updateTaskDto: UpdateTaskDto,
+  ): Promise<MyResponse<TaskModel>> {
     if (
       updateTaskDto.status !== undefined &&
       !VALID_STATUSES.includes(updateTaskDto.status)
     ) {
-      throw new BadRequestException(
+      return new ErrorResponse(
+        400,
+        CustomResponseType.invalid_field,
         `Estado inválido. Valores permitidos: ${VALID_STATUSES.join(', ')}`,
       );
     }
@@ -85,16 +113,25 @@ export class TasksService {
     } as Partial<TaskModel>);
 
     if (!updated) {
-      throw new NotFoundException(`Tarea con id ${id} no encontrada`);
+      return new ErrorResponse(
+        404,
+        CustomResponseType.not_found,
+        `Tarea con id ${id} no encontrada`,
+      );
     }
 
-    return updated;
+    return new SuccessResponse(200, undefined, undefined, updated);
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string): Promise<MyResponse<void>> {
     const removed = await this.taskDataSource.remove(id);
     if (!removed) {
-      throw new NotFoundException(`Tarea con id ${id} no encontrada`);
+      return new ErrorResponse(
+        404,
+        CustomResponseType.not_found,
+        `Tarea con id ${id} no encontrada`,
+      );
     }
+    return new SuccessResponse(204);
   }
 }
