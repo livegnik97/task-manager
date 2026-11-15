@@ -7,17 +7,21 @@ import { AssigneesPaginationDto } from './common/pagination-dtos/customs/assigne
 
 describe('TaskDataSourceLocal (modo local sin BD)', () => {
   let ds: TaskDataSourceLocal;
+  let assigneeDs: AssigneeDataSourceLocal;
 
   beforeEach(() => {
-    ds = new TaskDataSourceLocal();
+    assigneeDs = new AssigneeDataSourceLocal();
+    ds = new TaskDataSourceLocal(assigneeDs);
   });
 
   it('debe crear una tarea y encontrarla por ID', async () => {
+    const assignee = await assigneeDs.create({ name: 'Ana García', email: 'ana@test.com' });
+
     const created = await ds.create({
       title: 'Tarea de prueba',
       description: 'Descripción prueba',
       status: 'PENDING',
-      assignee: 'Ana',
+      assigneeId: assignee!.id,
       dueDate: '2026-12-01T10:00:00Z',
     });
 
@@ -25,11 +29,20 @@ describe('TaskDataSourceLocal (modo local sin BD)', () => {
     expect(created!.id).toBeDefined();
     expect(created!.title).toBe('Tarea de prueba');
     expect(created!.status).toBe(TaskStatus.PENDING);
-    expect(created!.assignee).toBe('Ana');
+    expect(created!.assigneeId).toBe(assignee!.id);
+    expect(created!.assigneeName).toBe('Ana García');
 
     const found = await ds.findOne(created!.id);
     expect(found).not.toBeNull();
     expect(found!.title).toBe('Tarea de prueba');
+  });
+
+  it('debe devolver null al crear tarea con assignee inexistente', async () => {
+    const created = await ds.create({
+      title: 'Tarea sin assignee válido',
+      assigneeId: 'id-inexistente',
+    });
+    expect(created).toBeNull();
   });
 
   it('debe devolver null al buscar tarea inexistente', async () => {
@@ -38,13 +51,16 @@ describe('TaskDataSourceLocal (modo local sin BD)', () => {
   });
 
   it('debe listar tareas con paginación y filtros', async () => {
-    await ds.create({ title: 'T1', status: 'PENDING', assignee: 'Ana' });
-    await ds.create({ title: 'T2', status: 'DONE', assignee: 'Ana' });
-    await ds.create({ title: 'T3', status: 'PENDING', assignee: 'Luis' });
+    const a1 = await assigneeDs.create({ name: 'Ana', email: 'ana@test.com' });
+    const a2 = await assigneeDs.create({ name: 'Luis', email: 'luis@test.com' });
+
+    await ds.create({ title: 'T1', status: 'PENDING', assigneeId: a1!.id });
+    await ds.create({ title: 'T2', status: 'DONE', assigneeId: a1!.id });
+    await ds.create({ title: 'T3', status: 'PENDING', assigneeId: a2!.id });
 
     const query = new TasksPaginationDto();
     query.status = TaskStatusFilter.PENDING;
-    query.assignee = 'Ana';
+    query.assigneeId = a1!.id;
     query.page = 1;
     query.limit = 10;
 
@@ -57,12 +73,14 @@ describe('TaskDataSourceLocal (modo local sin BD)', () => {
   });
 
   it('debe actualizar una tarea existente', async () => {
+    const assignee = await assigneeDs.create({ name: 'Original', email: 'orig@test.com' });
     const created = await ds.create({ title: 'Original', status: 'PENDING' });
 
-    const updated = await ds.update(created!.id, { status: TaskStatus.DONE, title: 'Modificada' });
+    const updated = await ds.update(created!.id, { status: TaskStatus.DONE, title: 'Modificada', assigneeId: assignee!.id });
     expect(updated).not.toBeNull();
     expect(updated!.status).toBe(TaskStatus.DONE);
     expect(updated!.title).toBe('Modificada');
+    expect(updated!.assigneeId).toBe(assignee!.id);
   });
 
   it('debe devolver null al actualizar tarea inexistente', async () => {

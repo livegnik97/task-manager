@@ -9,7 +9,7 @@ export abstract class TaskDataSourceInterface {
     title: string;
     description?: string;
     status?: string;
-    assignee?: string;
+    assigneeId?: string;
     dueDate?: string;
   }): Promise<TaskModel | null>;
   abstract update(

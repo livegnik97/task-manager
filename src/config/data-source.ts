@@ -12,7 +12,8 @@ export const dataSourceOptions: DataSourceOptions = {
   password: configService.get('DB_PASSWORD') || 'postgres',
   database: configService.get('DB_DATABASE') || 'task_manager_db',
   entities: [path.join(__dirname, '../modules/**/*.entity{.ts,.js}')],
-  synchronize: configService.get('NODE_ENV') !== 'prod',
+  synchronize: false,
+  // synchronize: configService.get('NODE_ENV') !== 'prod',
   logging: configService.get('NODE_ENV') === 'dev',
 };
 

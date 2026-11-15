@@ -36,7 +36,7 @@ export class TasksService {
       title: createTaskDto.title.trim(),
       description: createTaskDto.description,
       status: createTaskDto.status,
-      assignee: createTaskDto.assignee,
+      assigneeId: createTaskDto.assigneeId,
       dueDate: createTaskDto.dueDate,
     });
 
@@ -80,7 +80,7 @@ export class TasksService {
       title: updateTaskDto.title,
       description: updateTaskDto.description,
       status: updateTaskDto.status,
-      assignee: updateTaskDto.assignee,
+      assigneeId: updateTaskDto.assigneeId,
       dueDate: updateTaskDto.dueDate,
     } as Partial<TaskModel>);
 

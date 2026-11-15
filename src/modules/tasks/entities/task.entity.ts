@@ -4,7 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Assignee } from '../../assignees/entities/assignee.entity';
 
 export enum TaskStatus {
   PENDING = 'PENDING',
@@ -31,7 +34,11 @@ export class Task {
   status: TaskStatus;
 
   @Column({ nullable: true })
-  assignee?: string | null;
+  assigneeId?: string | null;
+
+  @ManyToOne(() => Assignee, { nullable: true })
+  @JoinColumn({ name: 'assignee_id' })
+  assignee?: Assignee | null;
 
   @Column({ nullable: true })
   dueDate?: Date | null;

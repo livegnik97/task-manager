@@ -3,6 +3,7 @@ import {
   IsOptional,
   IsEnum,
   IsDateString,
+  IsUUID,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { TaskStatus } from '../entities/task.entity';
@@ -24,9 +25,9 @@ export class UpdateTaskDto {
   status?: TaskStatus;
 
   @IsOptional()
-  @IsString()
+  @IsUUID()
   @ApiPropertyOptional()
-  assignee?: string;
+  assigneeId?: string;
 
   @IsOptional()
   @IsDateString()

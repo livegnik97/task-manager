@@ -7,7 +7,8 @@ export class TaskModel {
     title: string,
     description?: string | null,
     status?: TaskStatus | null,
-    assignee?: string | null,
+    assigneeId?: string | null,
+    assigneeName?: string | null,
     dueDate?: Date | null,
     createdAt?: Date,
   ) {
@@ -15,7 +16,8 @@ export class TaskModel {
     this.title = title;
     this.description = description;
     this.status = status ?? TaskStatus.PENDING;
-    this.assignee = assignee;
+    this.assigneeId = assigneeId;
+    this.assigneeName = assigneeName;
     this.dueDate = dueDate;
     this.createdAt = createdAt ?? new Date();
   }
@@ -33,7 +35,10 @@ export class TaskModel {
   status: TaskStatus;
 
   @ApiProperty({ nullable: true })
-  assignee?: string | null;
+  assigneeId?: string | null;
+
+  @ApiProperty({ nullable: true })
+  assigneeName?: string | null;
 
   @ApiProperty({ nullable: true, type: Date })
   dueDate?: Date | null;
@@ -47,7 +52,8 @@ export class TaskModel {
       entity.title,
       entity.description,
       entity.status,
-      entity.assignee,
+      entity.assigneeId,
+      entity.assignee?.name ?? null,
       entity.dueDate,
       entity.createdAt,
     );

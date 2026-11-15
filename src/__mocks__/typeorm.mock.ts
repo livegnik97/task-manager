@@ -5,6 +5,10 @@ export const Column = (options?: any) => (_target: any, _key: string) => {};
 export const PrimaryGeneratedColumn = (strategy?: any) => (_target: any, _key: string) => {};
 export const CreateDateColumn = (options?: any) => (_target: any, _key: string) => {};
 export const UpdateDateColumn = (options?: any) => (_target: any, _key: string) => {};
+export const ManyToOne = (target?: any, options?: any) => (_target: any, _key: string) => {};
+export const JoinColumn = (options?: any) => (_target: any, _key: string) => {};
+
+class TypeOrmCoreModule {}
 
 export const InjectRepository = (entity: any) => {
   return Inject(entity);
@@ -42,9 +46,9 @@ export class DataSource {
 }
 
 export const TypeOrmModule = {
-  forRoot: () => ({ module: 'TypeOrmCoreModule' }),
+  forRoot: () => ({ module: TypeOrmCoreModule }),
   forFeature: (entities: any[]) => ({
-    module: 'TypeOrmCoreModule',
+    module: TypeOrmCoreModule,
     providers: entities.map((e) => ({
       provide: e,
       useClass: Repository,

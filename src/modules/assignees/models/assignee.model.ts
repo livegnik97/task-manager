@@ -20,7 +20,7 @@ export class AssigneeModel {
   @ApiProperty()
   name: string;
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({ nullable: true, type: 'string' })
   email?: string | null;
 
   @ApiProperty()
