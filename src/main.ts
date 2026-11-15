@@ -49,7 +49,11 @@ async function bootstrap() {
 
   // Redirect raíz / y /api -> /api/docs
   app.use((req: any, res: any, next: any) => {
-    if (req.originalUrl === '/' || req.originalUrl === '/api' || req.originalUrl === '/api/') {
+    if (
+      req.originalUrl === '/' ||
+      req.originalUrl === '/api' ||
+      req.originalUrl === '/api/'
+    ) {
       res.redirect(301, '/api/docs');
     } else {
       next();
@@ -57,7 +61,7 @@ async function bootstrap() {
   });
 
   await app.listen(process.env.PORT ?? 3000);
-  const url = 'http://localhost:3000';
+  const url = 'http://localhost:' + (process.env.PORT ?? 3000);
   // const url = await app.getUrl();
   console.log(`\n🚀 Backend Task Manager running at: ${url}`);
   console.log(`📚 Swagger UI: ${url}/api/docs`);
