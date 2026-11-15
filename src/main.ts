@@ -45,19 +45,20 @@ async function bootstrap() {
     `,
   });
 
-  // Redirect raíz /api -> /api/docs
+  app.setGlobalPrefix('api');
+
+  // Redirect raíz / y /api -> /api/docs
   app.use((req: any, res: any, next: any) => {
-    if (req.originalUrl === '/api' || req.originalUrl === '/api/') {
+    if (req.originalUrl === '/' || req.originalUrl === '/api' || req.originalUrl === '/api/') {
       res.redirect(301, '/api/docs');
     } else {
       next();
     }
   });
 
-  app.setGlobalPrefix('api');
-
   await app.listen(process.env.PORT ?? 3000);
-  const url = await app.getUrl();
+  const url = 'http://localhost:3000';
+  // const url = await app.getUrl();
   console.log(`\n🚀 Backend Task Manager running at: ${url}`);
   console.log(`📚 Swagger UI: ${url}/api/docs`);
   console.log(`📄 Swagger JSON: ${url}/api/docs/json\n`);
